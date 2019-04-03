@@ -17,7 +17,7 @@ class CallbackReceiverI : public CallbackReceiver
 public:
     CallbackReceiverI(const shared_ptr<matlab::engine::MATLABEngine>& matlabPtr) :
         _matlabPtr(matlabPtr), _index(_counter++)
-    {
+    {treter
     }
 
     virtual void
@@ -25,7 +25,7 @@ public:
     {
         vector<Array> parameters = {ArrayFactory().createScalar(_index), ArrayFactory().createScalar(num)};
 
-        // Return the value to MATLAB synchronously
+        // Forward the dispatch to the resultCallback MATLAB function.
         // Only the main MexFunction thread can directly call into MATLAB synchronously,
         // so here we make an async call, then wait for it to complete.
         auto future = _matlabPtr->fevalAsync(u"resultCallback", parameters);
@@ -52,26 +52,25 @@ public:
     void
     operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) override
     {
-        // First input argument is the operation name. This is only part of
-        // this implementation, and not something passed in by MATLAB itself.
+        // For this demo, we pass the operation name as the first input argument.
         string opName = ((matlab::data::CharArray)inputs[0]).toAscii();
         int returnVal = 0;
         if(opName == "addClient")
         {
             returnVal = addClientI();
-        } else
-        if(opName == "destroy")
+        } 
+        else if(opName == "destroy")
         {
             returnVal = destroyI();
         }
         // Output the return value to MATLAB (0 for success, 1 for failure)
         // (First create a 1x1 array to put the return value in)
-        auto returnArr = ArrayFactory().createArray<int>({1,1});
+        auto returnArr = ArrayFactory().createArray<int>({1, 1});
         returnArr[0][0] = returnVal;
         outputs[0] = returnArr;
     }
 
-    // Adds this client to the server so it will receive callbacks from it.
+    // Add this client to the server so it will receive callbacks from it.
     int
     addClientI()
     {
@@ -87,9 +86,9 @@ public:
             {
                 cerr << "Invalid proxy" << endl;
             }
-            // Create an empty object adapter for receiving callbacks
+            // Create an anonymous object adapter for receiving callbacks
             _adapter = _ich->createObjectAdapter("");
-            // Register the object adapter with the bidirectional connections
+            // Register the object adapter with the bidirectional connection
             _serverProxy->ice_getConnection()->setAdapter(_adapter);
         }
 
@@ -100,7 +99,7 @@ public:
         return 0;
     }
 
-    // Destroy the client's communicator and performs cleanup
+    // Destroy the client's communicator and perform cleanup
     int
     destroyI()
     {
