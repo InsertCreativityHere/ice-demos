@@ -17,7 +17,7 @@ class CallbackReceiverI : public CallbackReceiver
 public:
     CallbackReceiverI(const shared_ptr<matlab::engine::MATLABEngine>& matlabPtr) :
         _matlabPtr(matlabPtr), _index(_counter++)
-    {treter
+    {
     }
 
     virtual void
