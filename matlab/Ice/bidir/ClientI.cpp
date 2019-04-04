@@ -16,7 +16,8 @@ class CallbackReceiverI : public CallbackReceiver
 {
 public:
     CallbackReceiverI(const shared_ptr<matlab::engine::MATLABEngine>& matlabPtr) :
-        _matlabPtr(matlabPtr), _index(_counter++)
+        _matlabPtr(matlabPtr),
+        _index(_counter++)
     {
     }
 
@@ -25,7 +26,7 @@ public:
     {
         vector<Array> parameters = {ArrayFactory().createScalar(_index), ArrayFactory().createScalar(num)};
 
-        // Forward the dispatch to the resultCallback MATLAB function.
+        // Forward the dispatch onto to resultCallback in MATLAB.
         // Only the main MexFunction thread can directly call into MATLAB synchronously,
         // so here we make an async call, then wait for it to complete.
         auto future = _matlabPtr->fevalAsync(u"resultCallback", parameters);
@@ -53,7 +54,7 @@ public:
     operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) override
     {
         // For this demo, we pass the operation name as the first input argument.
-        string opName = ((matlab::data::CharArray)inputs[0]).toAscii();
+        string opName = (static_cast<matlab::data::CharArray>(inputs[0])).toAscii();
         int returnVal = 0;
         if(opName == "addClient")
         {
@@ -70,25 +71,25 @@ public:
         outputs[0] = returnArr;
     }
 
-    // Add this client to the server so it will receive callbacks from it.
+    // Add this client to the server to receive callbacks from it.
     int
     addClientI()
     {
-        // Initialize a new communicator if there isn't one currently
+        // Initialize a new communicator if there isn't one already.
         if(!_ich)
         {
-            // Initialize a communicator
+            // Initialize a communicator.
             _ich = Ice::initialize("config.client");
 
-            // Obtain a proxy to the server
+            // Obtain a proxy to the server.
             _serverProxy = Ice::checkedCast<CallbackSenderPrx>(_ich->propertyToProxy("CallbackSender.Proxy"));
             if(!_serverProxy)
             {
                 cerr << "Invalid proxy" << endl;
             }
-            // Create an anonymous object adapter for receiving callbacks
+            // Create an anonymous object adapter for receiving callbacks.
             _adapter = _ich->createObjectAdapter("");
-            // Register the object adapter with the bidirectional connection
+            // Register the object adapter with the bidirectional connection.
             _serverProxy->ice_getConnection()->setAdapter(_adapter);
         }
 
