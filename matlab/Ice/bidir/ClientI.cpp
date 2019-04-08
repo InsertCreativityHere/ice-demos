@@ -75,31 +75,30 @@ public:
     int
     addClientI()
     {
-        // Initialize a new communicator if there isn't one already.
-        if(!_ich)
-        {
-            // Initialize a communicator.
-            _ich = Ice::initialize("config.client");
-
-            // Obtain a proxy to the server.
-            _serverProxy = Ice::checkedCast<CallbackSenderPrx>(_ich->propertyToProxy("CallbackSender.Proxy"));
-            if(!_serverProxy)
-            {
-                cerr << "Invalid proxy" << endl;
-                return 1;
-            }
-            // Create an anonymous object adapter for receiving callbacks.
-            _adapter = _ich->createObjectAdapter("");
-            // Register the object adapter with the bidirectional connection.
-            _serverProxy->ice_getConnection()->setAdapter(_adapter);
-        }
-
-        // Send the request to the server
         try
         {
+            // Initialize a new communicator if there isn't one already.
+            if(!_ich)
+            {
+                // Initialize a communicator.
+                _ich = Ice::initialize("config.client");
+
+                // Obtain a proxy to the server.
+                _serverProxy = Ice::checkedCast<CallbackSenderPrx>(_ich->propertyToProxy("CallbackSender.Proxy"));
+                if(!_serverProxy)
+                {
+                    cerr << "Invalid proxy" << endl;
+                    return 1;
+                }
+                // Create an anonymous object adapter for receiving callbacks.
+                _adapter = _ich->createObjectAdapter("");
+                // Register the object adapter with the bidirectional connection.
+                _serverProxy->ice_getConnection()->setAdapter(_adapter);
+            }
+
+            // Send the request to the server
             auto callbackPrx = _adapter->addWithUUID(make_shared<CallbackReceiverI>(_matlabPtr));
-            _clientProxy = Ice::uncheckedCast<CallbackReceiverPrx>(callbackPrx);
-            _serverProxy->addClient(_clientProxy);
+            _serverProxy->addClient(Ice::uncheckedCast<CallbackReceiverPrx>(callbackPrx));
         }
         catch(const std::exception& ex)
         {
@@ -124,7 +123,7 @@ public:
 private:
     shared_ptr<matlab::engine::MATLABEngine> _matlabPtr;
     shared_ptr<Ice::ObjectAdapter> _adapter;
-    shared_ptr<CallbackReceiverPrx> _clientProxy;
+
     shared_ptr<CallbackSenderPrx> _serverProxy;
     Ice::CommunicatorHolder _ich;
 };
