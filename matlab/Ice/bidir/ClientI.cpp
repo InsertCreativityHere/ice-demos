@@ -29,7 +29,7 @@ public:
         // Forward the dispatch onto to resultCallback in MATLAB.
         // Only the main MexFunction thread can directly call into MATLAB synchronously,
         // so here we make an async call, then wait for it to complete.
-        auto future = _matlabPtr->fevalAsync(u"resultCallback", parameters);
+        auto future = _matlabPtr->fevalAsync(u"resultCallback", 0, parameters);
         future.get();
     }
 
@@ -59,7 +59,7 @@ public:
         if(opName == "addClient")
         {
             returnVal = addClientI();
-        } 
+        }
         else if(opName == "destroy")
         {
             returnVal = destroyI();
