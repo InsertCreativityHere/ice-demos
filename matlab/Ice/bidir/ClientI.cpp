@@ -86,6 +86,7 @@ public:
             if(!_serverProxy)
             {
                 cerr << "Invalid proxy" << endl;
+                return 1;
             }
             // Create an anonymous object adapter for receiving callbacks.
             _adapter = _ich->createObjectAdapter("");
@@ -94,9 +95,17 @@ public:
         }
 
         // Send the request to the server
-        auto callbackPrx = _adapter->addWithUUID(make_shared<CallbackReceiverI>(_matlabPtr));
-        _clientProxy = Ice::uncheckedCast<CallbackReceiverPrx>(callbackPrx);
-        _serverProxy->addClient(_clientProxy);
+        try
+        {
+            auto callbackPrx = _adapter->addWithUUID(make_shared<CallbackReceiverI>(_matlabPtr));
+            _clientProxy = Ice::uncheckedCast<CallbackReceiverPrx>(callbackPrx);
+            _serverProxy->addClient(_clientProxy);
+        }
+        catch(const std::exception& ex)
+        {
+            cout << ex.what() << endl;
+            return 1;
+        }
         return 0;
     }
 

@@ -11,24 +11,16 @@ function client()
     % Build the mex files if they haven't been generated yet
     if(isempty(dir('ClientI.mex*')))
         disp('Building mex file...');
-        % Locate the ice-demos directory
-        matlabIndex = strfind(pwd, 'matlab');
-        if(isempty(matlabIndex))
-            disp('Failed to locate ice-demos/matlab directory');
+        % Find a compatible Ice for C++ NuGet package
+        packagePaths = dir('../../../cpp11/packages/zeroc.ice.v140.*');
+        if(isempty(packagePaths))
+            disp('Failed to locate Ice for C++ NuGet packages');
         else
-            % Find a compatible Ice for C++ NuGet package
-            demoDir = extractBefore(pwd, (matlabIndex(1) - 1));
-            packageDir = strcat(demoDir, '/cpp11/packages');
-            packagePaths = dir(strcat(packageDir, '/zeroc.ice.v*'));
-            if(isempty(packagePaths))
-                disp('Failed to locate Ice for C++ NuGet packages');
-            else
-                setenv('IceHome', strcat(packagePaths(1).folder, '/', packagePaths(1).name));
-                % Compile the slice files
-                !%IceHome%/tools/slice2cpp.exe Callback.ice
-                % Build the mex file
-                !mex ClientI.cpp Callback.cpp -DICE_CPP11_MAPPING -I. -I%IceHome%/build/native/include -L%IceHome%/build/native/lib/x64/Release -lice37++11
-            end
+            setenv('IceHome', strcat(packagePaths(1).folder, '/', packagePaths(1).name));
+            % Compile the slice files
+            !%IceHome%/tools/slice2cpp.exe Callback.ice
+            % Build the mex file
+            !mex ClientI.cpp Callback.cpp -DICE_CPP11_MAPPING -I. -I%IceHome%/build/native/include -L%IceHome%/build/native/lib/x64/Release -lice37++11
         end
     end
 
