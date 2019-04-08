@@ -102,7 +102,7 @@ public:
         }
         catch(const std::exception& ex)
         {
-            cout << ex.what() << endl;
+            cerr << ex.what() << endl;
             return 1;
         }
         return 0;
