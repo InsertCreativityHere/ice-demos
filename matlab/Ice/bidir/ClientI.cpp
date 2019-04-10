@@ -102,6 +102,9 @@ public:
         }
         catch(const std::exception& ex)
         {
+            // Attempt to destroy the communicator if anything fails.
+            destroyI();
+
             cerr << ex.what() << endl;
             return 1;
         }

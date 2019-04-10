@@ -16,16 +16,22 @@ function client()
         if(isempty(packagePaths))
             disp('Failed to locate Ice for C++ NuGet packages');
         else
-            setenv('IceHome', strcat(packagePaths(1).folder, '/', packagePaths(1).name));
+            iceHome = strcat(packagePaths(1).folder, '/', packagePaths(1).name);
+            setenv('IceHome', iceHome);
             % Compile the slice files
             !%IceHome%/tools/slice2cpp.exe Callback.ice
             % Build the mex file
             !mex ClientI.cpp Callback.cpp -DICE_CPP11_MAPPING -I. -I%IceHome%/build/native/include -L%IceHome%/build/native/lib/x64/Release -lice37++11
+            % Add the ice bin directory to PATH for the session.
+            setenv('PATH', strcat(getenv('PATH'), ';', iceHome, '/build/native/bin/x64/Release'));
         end
     end
 
     % Send the request through C++11
-    ClientI('addClient');
+    if(ClientI('addClient') ~= 0)
+       disp("Failed to add client... Exiting.");
+       return;
+    end
     disp('Running for 10 seconds...');
 
     % Let the client run for 10 seconds
