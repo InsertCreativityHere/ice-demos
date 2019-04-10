@@ -8,23 +8,25 @@ function client()
         matlab.engine.shareEngine('IceEngine');
     end
 
+    % Find a compatible Ice for C++ NuGet package
+    packagePaths = dir('../../../cpp11/packages/zeroc.ice.v140.*');
+    if(isempty(packagePaths))
+        disp('Failed to locate Ice for C++ NuGet packages');
+        return;
+    else
+        % Add the ice bin directory to PATH for the session.
+        iceHome = strcat(packagePaths(1).folder, '/', packagePaths(1).name);
+        setenv('PATH', strcat(getenv('PATH'), ';', iceHome, '/build/native/bin/x64/Release'));
+    end
+
     % Build the mex files if they haven't been generated yet
     if(isempty(dir('ClientI.mex*')))
         disp('Building mex file...');
-        % Find a compatible Ice for C++ NuGet package
-        packagePaths = dir('../../../cpp11/packages/zeroc.ice.v140.*');
-        if(isempty(packagePaths))
-            disp('Failed to locate Ice for C++ NuGet packages');
-        else
-            iceHome = strcat(packagePaths(1).folder, '/', packagePaths(1).name);
-            setenv('IceHome', iceHome);
-            % Compile the slice files
-            !%IceHome%/tools/slice2cpp.exe Callback.ice
-            % Build the mex file
-            !mex ClientI.cpp Callback.cpp -DICE_CPP11_MAPPING -I. -I%IceHome%/build/native/include -L%IceHome%/build/native/lib/x64/Release -lice37++11
-            % Add the ice bin directory to PATH for the session.
-            setenv('PATH', strcat(getenv('PATH'), ';', iceHome, '/build/native/bin/x64/Release'));
-        end
+        setenv('IceHome', iceHome);
+        % Compile the slice files
+        !%IceHome%/tools/slice2cpp.exe Callback.ice
+        % Build the mex file
+        !mex ClientI.cpp Callback.cpp -DICE_CPP11_MAPPING -I. -I%IceHome%/build/native/include -L%IceHome%/build/native/lib/x64/Release -lice37++11
     end
 
     % Send the request through C++11
