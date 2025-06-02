@@ -3,8 +3,6 @@
 val runningInCi = providers.environmentVariable("CI").isPresent
 
 plugins {
-    `java`
-
     // Apply the checkstyle plugin to find formatting violations.
     id("checkstyle")
 
